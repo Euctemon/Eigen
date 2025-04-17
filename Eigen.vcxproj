@@ -45,6 +45,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <EnableASAN>true</EnableASAN>
+    <SpectreMitigation>false</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -105,10 +106,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <SmallerTypeCheck>true</SmallerTypeCheck>
-      <DisableLanguageExtensions>true</DisableLanguageExtensions>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <CompileAs>CompileAsC</CompileAs>
+      <Optimization>Disabled</Optimization>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,9 +138,11 @@
   <ItemGroup>
     <ClCompile Include="main.c" />
     <ClCompile Include="matrix.c" />
+    <ClCompile Include="vector.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
