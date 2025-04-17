@@ -136,11 +136,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="eigenvalues.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="matrix.c" />
     <ClCompile Include="vector.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="eigenvalues.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="vector.h" />
   </ItemGroup>

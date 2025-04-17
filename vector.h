@@ -13,5 +13,8 @@ void vectorFree(struct Vector vec);
 
 void vectorSetOnes(struct Vector* vec);
 
+double dot(struct Vector* vec1, struct Vector* vec2);
+
 void vectorNormalize(struct Vector* vec);
 
+void vectorCopy(struct Vector* vec1, struct Vector* vec2);

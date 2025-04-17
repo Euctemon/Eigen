@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "vector.h"
 
@@ -22,10 +23,10 @@ void vectorWrite(struct Vector vec, char filepath[]) {
     if (err != 0) printf("writing to file: file was not opened\n");
 
     if (stream != NULL) {
-        fprintf(stream, "%u", vec.dim);
+        fprintf(stream, "%u\n", vec.dim);
 
         for (size_t i = 0; i < vec.dim; i++) {
-            fprintf(stream, " %lf", vec.data[i]);
+            fprintf(stream, "%lf ", vec.data[i]);
         }
 
         fclose(stream);
@@ -45,16 +46,29 @@ void vectorSetOnes(struct Vector* vec) {
     }
 }
 
+double dot(struct Vector* vec1, struct Vector* vec2) {
+    double res = 0;
+    for (size_t i = 0; i < vec1->dim; i++)
+    {
+        res = res + vec1->data[i] * vec2->data[i];
+    }
+    
+    return res;
+}
+
 void vectorNormalize(struct Vector* vec) {
-    double sum = 0;
+    double norm = sqrt(dot(vec, vec));
 
     for (size_t i = 0; i < vec->dim; i++)
     {
-        sum = sum + vec->data[i];
+        vec->data[i] = vec->data[i] / norm;
     }
 
-    for (size_t i = 0; i < vec->dim; i++)
+}
+
+void vectorCopy(struct Vector* vec1, struct Vector* vec2) {
+    for (size_t i = 0; i < vec1->dim; i++)
     {
-        vec->data[i] = vec->data[i] / sum;
+        vec2->data[i] = vec1->data[i];
     }
 }
