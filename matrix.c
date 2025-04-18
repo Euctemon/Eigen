@@ -4,7 +4,7 @@
 
 #include "matrix.h"
 
-struct Matrix matrixInit(unsigned int dim) {
+struct Matrix mat_init(unsigned int dim) {
     size_t data_size = (size_t)dim * dim * sizeof(double);
     struct Matrix mat = {dim, malloc(data_size)};
     
@@ -16,13 +16,13 @@ struct Matrix matrixInit(unsigned int dim) {
     return mat;
 }
 
-void matrixFree(struct Matrix mat) {
+void mat_free(struct Matrix mat) {
     if (mat.data != NULL) {
         free(mat.data);
     }
 }
 
-struct Matrix matrixRead(char filepath[]) {
+struct Matrix mat_read(char filepath[]) {
 	FILE* stream = NULL;
 	errno_t err = fopen_s(&stream, filepath, "r");
 	unsigned int dim;
@@ -37,7 +37,7 @@ struct Matrix matrixRead(char filepath[]) {
 		double temp = 0;
 
 		fscanf_s(stream, "%u", &dim);
-		mat = matrixInit(dim);
+		mat = mat_init(dim);
 
 		while (fscanf_s(stream, "%lf", &temp) == 1) {
 			mat.data[i] = temp;
@@ -50,7 +50,7 @@ struct Matrix matrixRead(char filepath[]) {
 	return mat;
 }
 
-void matrixWrite(struct Matrix mat, char filepath[]) {
+void mat_write(struct Matrix mat, char filepath[]) {
 	FILE* stream = NULL;
 	errno_t err = fopen_s(&stream, filepath, "w");
 

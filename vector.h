@@ -5,16 +5,18 @@ struct Vector {
 	double* data;
 };
 
-struct Vector vectorInit(unsigned int dim);
+struct Vector vec_init(unsigned int dim);
 
-void vectorWrite(struct Vector vec, char filepath[]);
+void vec_writeFile(struct Vector vec, char filepath[]);
 
-void vectorFree(struct Vector vec);
+void vec_writeConsole(struct Vector vec);
 
-void vectorSetOnes(struct Vector* vec);
+void vec_free(struct Vector vec);
 
-double dot(struct Vector* vec1, struct Vector* vec2);
+void vec_setOnes(struct Vector* vec);
 
-void vectorNormalize(struct Vector* vec);
+double vec_dot(struct Vector* vec1, struct Vector* vec2);
 
-void vectorCopy(struct Vector* vec1, struct Vector* vec2);
+void vec_normalize(struct Vector* vec);
+
+void vec_copy(struct Vector* vec_from, struct Vector* vec_to);

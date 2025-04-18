@@ -5,11 +5,11 @@ struct Matrix {
 	double* data;
 };
 
-struct Matrix matrixInit(unsigned int dim);
+struct Matrix mat_init(unsigned int dim);
 
-struct Matrix matrixRead(char filepath[]);
+struct Matrix mat_read(char filepath[]);
 
-void matrixFree(struct Matrix mat);
+void mat_free(struct Matrix mat);
 
-void matrixWrite(struct Matrix mat, char filepath[]);
+void mat_write(struct Matrix mat, char filepath[]);
 

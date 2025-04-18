@@ -4,7 +4,7 @@
 
 #include "vector.h"
 
-struct Vector vectorInit(unsigned int dim) {
+struct Vector vec_init(unsigned int dim) {
     size_t data_size = (size_t)dim * sizeof(double);
     struct Vector vec = { dim, malloc(data_size) };
 
@@ -16,7 +16,7 @@ struct Vector vectorInit(unsigned int dim) {
     return vec;
 }
 
-void vectorWrite(struct Vector vec, char filepath[]) {
+void vec_writeFile(struct Vector vec, char filepath[]) {
     FILE* stream = NULL;
     errno_t err = fopen_s(&stream, filepath, "w");
 
@@ -33,20 +33,26 @@ void vectorWrite(struct Vector vec, char filepath[]) {
     }
 }
 
-void vectorFree(struct Vector vec) {
+void vec_writeConsole(struct Vector vec) {
+    for (size_t i = 0; i < vec.dim; i++) {
+        printf("%lf ", vec.data[i]);
+    }
+}
+
+void vec_free(struct Vector vec) {
     if (vec.data != NULL) {
         free(vec.data);
     }
 }
 
-void vectorSetOnes(struct Vector* vec) {
+void vec_setOnes(struct Vector* vec) {
     for (size_t i = 0; i < vec->dim; i++)
     {
         vec->data[i] = 1;
     }
 }
 
-double dot(struct Vector* vec1, struct Vector* vec2) {
+double vec_dot(struct Vector* vec1, struct Vector* vec2) {
     double res = 0;
     for (size_t i = 0; i < vec1->dim; i++)
     {
@@ -56,8 +62,8 @@ double dot(struct Vector* vec1, struct Vector* vec2) {
     return res;
 }
 
-void vectorNormalize(struct Vector* vec) {
-    double norm = sqrt(dot(vec, vec));
+void vec_normalize(struct Vector* vec) {
+    double norm = sqrt(vec_dot(vec, vec));
 
     for (size_t i = 0; i < vec->dim; i++)
     {
@@ -66,9 +72,9 @@ void vectorNormalize(struct Vector* vec) {
 
 }
 
-void vectorCopy(struct Vector* vec1, struct Vector* vec2) {
-    for (size_t i = 0; i < vec1->dim; i++)
+void vec_copy(struct Vector* vec_from, struct Vector* vec_to) {
+    for (size_t i = 0; i < vec_from->dim; i++)
     {
-        vec2->data[i] = vec1->data[i];
+        vec_to->data[i] = vec_from->data[i];
     }
 }
