@@ -20,3 +20,7 @@ double vec_dot(struct Vector* vec1, struct Vector* vec2);
 void vec_normalize(struct Vector* vec);
 
 void vec_copy(struct Vector* vec_from, struct Vector* vec_to);
+
+void vec_smul(struct Vector* vec, double scale);
+
+void vec_add(struct Vector* vec_res, struct Vector* vec_add);

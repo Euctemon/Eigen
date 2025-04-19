@@ -42,6 +42,7 @@ void vec_writeConsole(struct Vector vec) {
 void vec_free(struct Vector vec) {
     if (vec.data != NULL) {
         free(vec.data);
+        vec.data = NULL;
     }
 }
 
@@ -76,5 +77,19 @@ void vec_copy(struct Vector* vec_from, struct Vector* vec_to) {
     for (size_t i = 0; i < vec_from->dim; i++)
     {
         vec_to->data[i] = vec_from->data[i];
+    }
+}
+
+void vec_smul(struct Vector* vec, double scale) {
+    for (size_t i = 0; i < vec->dim; i++)
+    {
+        vec->data[i] = vec->data[i] * scale;
+    }
+}
+
+void vec_add(struct Vector* vec_res, struct Vector* vec_add) {
+    for (size_t i = 0; i < vec_res->dim; i++)
+    {
+        vec_res->data[i] = vec_res->data[i] + vec_add->data[i];
     }
 }

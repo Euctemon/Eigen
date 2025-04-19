@@ -19,6 +19,7 @@ struct Matrix mat_init(unsigned int dim) {
 void mat_free(struct Matrix mat) {
     if (mat.data != NULL) {
         free(mat.data);
+		mat.data = NULL;
     }
 }
 

@@ -3,6 +3,9 @@
 
 #include "eigenvalues.h"
 
+
+
+
 void gemv(struct Matrix* mat, struct Vector* vec_in, struct Vector* vec_out) {
 	for (size_t i = 0; i < mat->dim; i++)
 	{
@@ -14,7 +17,7 @@ void gemv(struct Matrix* mat, struct Vector* vec_in, struct Vector* vec_out) {
 	}
 }
 
-void eigenpair_writeConsole(struct Eigenpair eigenpair) {
+void eigenpair_writeConsole(struct Eigen_pair eigenpair) {
     printf("eigenvalue approximation : %f\n", eigenpair.eigenval);
     
     printf("eigenvector approximation : ");
@@ -22,16 +25,16 @@ void eigenpair_writeConsole(struct Eigenpair eigenpair) {
     printf("\n");
 }
 
-void eigenpair_free(struct Eigenpair eigenpair) {
-    vec_free(eigenpair.eigenvec);
+void eigenpair_free(struct Eigen_pair* eigenpair) {
+    vec_free(eigenpair->eigenvec);
 }
 
-struct Eigenpair eigenpair_compute(struct Matrix* mat, double tol) {
+struct Eigen_pair eigenpair_compute(struct Matrix* mat, double tol) {
     double val_current = 1;
     double val_next = 1;
     size_t iter_count = 0;
 
-    struct Eigenpair eigenpair = {0, vec_init(mat->dim)};
+    struct Eigen_pair eigenpair = {0, vec_init(mat->dim)};
     struct Vector vec_current = vec_init(mat->dim);
     struct Vector vec_next = vec_init(mat->dim);
 
