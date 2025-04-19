@@ -2,28 +2,28 @@
 
 #include <stdio.h>
 #include <math.h>
-
 #include "matrix.h"
 #include "vector.h"
-#include "linkedlist.h"
 
-struct Eigen_pair {
+struct EigenPair {
     double eigenval;
     struct Vector eigenvec;
 };
 
+struct Node {
+    struct EigenPair* data;
+    struct Node* next;
+};
 
-/// <summary>
-/// General matrix-vector product between mat and vec_in, written to vec_out.
-/// </summary>
-void gemv(struct Matrix* mat, struct Vector* vec_in, struct Vector* vec_out);
+bool list_add(struct Node** head, void* data, size_t data_size);
+
+void list_delete(struct Node** head, void (*free_data)(void*));
+
+void gemv(struct Matrix mat, struct Vector vec_in, struct Vector vec_out);
 
 
+void eigenpair_writeConsole(struct EigenPair eigenpair);
 
-void eigenpair_writeConsole(struct Eigen_pair eigenpair);
+void eigenpair_free(struct EigenPair* eigenpair);
 
-void eigenpair_free(struct Eigen_pair* eigenpair);
-
-struct Eigen_pair eigenpair_compute(struct Matrix* mat, double tol);
-
-//struct Eigenpair second_eigenpair_compute(struct Matrix* mat, double tol);
+struct EigenPair eigenpair_compute(struct Matrix* mat, double tol);

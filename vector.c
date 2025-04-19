@@ -6,8 +6,8 @@
 
 struct Vector vec_init(unsigned int dim) {
     size_t data_size = (size_t)dim * sizeof(double);
-    struct Vector vec = { dim, malloc(data_size) };
-
+    struct Vector vec = {dim, malloc(data_size)};
+    
     if (vec.data == NULL) {
         printf("could not allocate vector\n");
         exit(1);
@@ -20,7 +20,9 @@ void vec_writeFile(struct Vector vec, char filepath[]) {
     FILE* stream = NULL;
     errno_t err = fopen_s(&stream, filepath, "w");
 
-    if (err != 0) printf("writing to file: file was not opened\n");
+    if (err != 0) {
+        printf("writing to file: file was not opened\n");
+    }
 
     if (stream != NULL) {
         fprintf(stream, "%u\n", vec.dim);
@@ -46,50 +48,50 @@ void vec_free(struct Vector vec) {
     }
 }
 
-void vec_setOnes(struct Vector* vec) {
-    for (size_t i = 0; i < vec->dim; i++)
-    {
-        vec->data[i] = 1;
+void vec_setOnes(struct Vector vec) {
+    for (size_t i = 0; i < vec.dim; i++) {
+        vec.data[i] = 1;
     }
 }
 
-double vec_dot(struct Vector* vec1, struct Vector* vec2) {
-    double res = 0;
-    for (size_t i = 0; i < vec1->dim; i++)
-    {
-        res = res + vec1->data[i] * vec2->data[i];
+void vec_setZeroes(struct Vector vec) {
+    for (size_t i = 0; i < vec.dim; i++) {
+        vec.data[i] = 0;
     }
-    
-    return res;
 }
 
-void vec_normalize(struct Vector* vec) {
+void vec_normalize(struct Vector vec) {
     double norm = sqrt(vec_dot(vec, vec));
 
-    for (size_t i = 0; i < vec->dim; i++)
-    {
-        vec->data[i] = vec->data[i] / norm;
-    }
-
-}
-
-void vec_copy(struct Vector* vec_from, struct Vector* vec_to) {
-    for (size_t i = 0; i < vec_from->dim; i++)
-    {
-        vec_to->data[i] = vec_from->data[i];
+    for (size_t i = 0; i < vec.dim; i++) {
+        vec.data[i] = vec.data[i] / norm;
     }
 }
 
-void vec_smul(struct Vector* vec, double scale) {
-    for (size_t i = 0; i < vec->dim; i++)
-    {
-        vec->data[i] = vec->data[i] * scale;
+void vec_copy(struct Vector vec_from, struct Vector vec_to) {
+    for (size_t i = 0; i < vec_from.dim; i++) {
+        vec_to.data[i] = vec_from.data[i];
     }
 }
 
-void vec_add(struct Vector* vec_res, struct Vector* vec_add) {
-    for (size_t i = 0; i < vec_res->dim; i++)
-    {
-        vec_res->data[i] = vec_res->data[i] + vec_add->data[i];
+void vec_smul(struct Vector vec, double scale) {
+    for (size_t i = 0; i < vec.dim; i++) {
+        vec.data[i] = vec.data[i] * scale;
     }
+}
+
+void vec_add(struct Vector vec1, struct Vector vec2) {
+    for (size_t i = 0; i < vec1.dim; i++) {
+        vec1.data[i] = vec1.data[i] + vec2.data[i];
+    }
+}
+
+double vec_dot(struct Vector vec1, struct Vector vec2) {
+    double res = 0;
+
+    for (size_t i = 0; i < vec1.dim; i++) {
+        res = res + vec1.data[i] * vec2.data[i];
+    }
+
+    return res;
 }

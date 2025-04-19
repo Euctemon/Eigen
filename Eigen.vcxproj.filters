@@ -27,9 +27,6 @@
     <ClCompile Include="eigenvalues.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="linkedlist.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrix.h">
@@ -39,9 +36,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="eigenvalues.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="linkedlist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
