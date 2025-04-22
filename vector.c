@@ -1,22 +1,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-
+#include <string.h>
 #include "vector.h"
 
-struct Vector vec_init(unsigned int dim) {
-    size_t data_size = (size_t)dim * sizeof(double);
-    struct Vector vec = {dim, malloc(data_size)};
+struct Vector* vec_init(size_t dim) {
+    struct Vector* vec_pt = malloc(sizeof(struct Vector) + dim * sizeof(double));
     
-    if (vec.data == NULL) {
+    if (vec_pt == NULL) {
         printf("could not allocate vector\n");
         exit(1);
     }
 
-    return vec;
+    return vec_pt;
 }
 
-void vec_writeFile(struct Vector vec, char filepath[]) {
+void vec_writeFile(const struct Vector* vec_pt, const char filepath[]) {
     FILE* stream = NULL;
     errno_t err = fopen_s(&stream, filepath, "w");
 
@@ -25,72 +24,73 @@ void vec_writeFile(struct Vector vec, char filepath[]) {
     }
 
     if (stream != NULL) {
-        fprintf(stream, "%u\n", vec.dim);
+        fprintf(stream, "%zu\n", vec_pt->dim);
 
-        for (size_t i = 0; i < vec.dim; i++) {
-            fprintf(stream, "%lf ", vec.data[i]);
+        for (size_t i = 0; i < vec_pt->dim; i++) {
+            fprintf(stream, "%lf ", vec_pt->data[i]);
         }
 
         fclose(stream);
     }
 }
 
-void vec_writeConsole(struct Vector vec) {
-    for (size_t i = 0; i < vec.dim; i++) {
-        printf("%lf ", vec.data[i]);
+void vec_writeConsole(const struct Vector* vec_pt) {
+    for (size_t i = 0; i < vec_pt->dim; i++) {
+        printf("%lf ", vec_pt->data[i]);
     }
 }
 
-void vec_free(struct Vector vec) {
-    if (vec.data != NULL) {
-        free(vec.data);
-        vec.data = NULL;
+void vec_setZeroes(struct Vector* vec_pt) {
+    for (size_t i = 0; i < vec_pt->dim; i++) {
+        vec_pt->data[i] = 0;
     }
 }
 
-void vec_setOnes(struct Vector vec) {
-    for (size_t i = 0; i < vec.dim; i++) {
-        vec.data[i] = 1;
+void vec_setOnes(struct Vector* vec_pt) {
+    for (size_t i = 0; i < vec_pt->dim; i++) {
+        vec_pt->data[i] = 1;
     }
 }
 
-void vec_setZeroes(struct Vector vec) {
-    for (size_t i = 0; i < vec.dim; i++) {
-        vec.data[i] = 0;
+void vec_normalize(struct Vector* vec_pt) {
+    double norm = sqrt(vec_power(vec_pt));
+
+    for (size_t i = 0; i < vec_pt->dim; i++) {
+        vec_pt->data[i] = vec_pt->data[i] / norm;
     }
 }
 
-void vec_normalize(struct Vector vec) {
-    double norm = sqrt(vec_dot(vec, vec));
+void vec_copy(const struct Vector* vec_from_pt, struct Vector* vec_to_pt) {
+    memcpy(vec_from_pt, vec_to_pt, sizeof(struct Vector) + vec_from_pt->dim * sizeof(double));
+}
 
-    for (size_t i = 0; i < vec.dim; i++) {
-        vec.data[i] = vec.data[i] / norm;
+void vec_smul(struct Vector* vec_pt, double scale) {
+    for (size_t i = 0; i < vec_pt->dim; i++) {
+        vec_pt->data[i] = vec_pt->data[i] * scale;
     }
 }
 
-void vec_copy(struct Vector vec_from, struct Vector vec_to) {
-    for (size_t i = 0; i < vec_from.dim; i++) {
-        vec_to.data[i] = vec_from.data[i];
+void vec_add(struct Vector* vec1_pt, const struct Vector* vec2_pt) {
+    for (size_t i = 0; i < vec1_pt->dim; i++) {
+        vec1_pt->data[i] = vec1_pt->data[i] + vec2_pt->data[i];
     }
 }
 
-void vec_smul(struct Vector vec, double scale) {
-    for (size_t i = 0; i < vec.dim; i++) {
-        vec.data[i] = vec.data[i] * scale;
-    }
-}
-
-void vec_add(struct Vector vec1, struct Vector vec2) {
-    for (size_t i = 0; i < vec1.dim; i++) {
-        vec1.data[i] = vec1.data[i] + vec2.data[i];
-    }
-}
-
-double vec_dot(struct Vector vec1, struct Vector vec2) {
+double vec_power(const struct Vector* vec_pt) {
     double res = 0;
 
-    for (size_t i = 0; i < vec1.dim; i++) {
-        res = res + vec1.data[i] * vec2.data[i];
+    for (size_t i = 0; i < vec_pt->dim; i++) {
+        res = res + vec_pt->data[i] * vec_pt->data[i];
+    }
+
+    return res;
+}
+
+double vec_dot(const struct Vector* restrict vec1_pt, const struct Vector* restrict vec2_pt) {
+    double res = 0;
+
+    for (size_t i = 0; i < vec1_pt->dim; i++) {
+        res = res + vec1_pt->data[i] * vec2_pt->data[i];
     }
 
     return res;

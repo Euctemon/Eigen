@@ -1,31 +1,31 @@
 #pragma once
 
+// Data stored as flexible-array member.
 struct Vector {
-	unsigned int dim;
-	double* data;
+	size_t dim;
+	double data[];
 };
 
-struct Vector vec_init(unsigned int dim);
+struct Vector* vec_init(size_t dim);
 
-void vec_writeFile(struct Vector vec, char filepath[]);
+void vec_writeFile(const struct Vector* vec_pt, const char filepath[]);
 
-void vec_writeConsole(struct Vector vec);
+void vec_writeConsole(const struct Vector* vec_pt);
 
-void vec_free(struct Vector vec);
+void vec_setZeroes(struct Vector* vec_pt);
 
-void vec_setOnes(struct Vector vec);
+void vec_setOnes(struct Vector* vec_pt);
 
-void vec_setZeroes(struct Vector vec);
+void vec_normalize(struct Vector* vec_pt);
 
-void vec_normalize(struct Vector vec);
+void vec_copy(const struct Vector* vec_from_pt, struct Vector* vec_to_pt);
 
-void vec_copy(struct Vector vec_from, struct Vector vec_to);
+void vec_smul(struct Vector* vec_pt, double scale);
 
-void vec_smul(struct Vector vec, double scale);
+// Overwrites the first vector.
+void vec_add(struct Vector* vec1_pt, const struct Vector* vec2_pt);
 
-/// <summary>
-/// Overwrites the first vector.
-/// </summary>
-void vec_add(struct Vector vec1, struct Vector vec2);
+double vec_power(const struct Vector* vec_pt);
 
-double vec_dot(struct Vector vec1, struct Vector vec2);
+// Dot product for non-overlapping vectors.
+double vec_dot(const struct Vector* restrict vec1_pt, const struct Vector* restrict vec2_pt);
