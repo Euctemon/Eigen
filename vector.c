@@ -11,6 +11,9 @@ struct Vector* vec_init(size_t dim) {
         printf("could not allocate vector\n");
         exit(1);
     }
+    else {
+        vec_pt->dim = dim;
+    }
 
     return vec_pt;
 }
@@ -41,13 +44,13 @@ void vec_write_console(const struct Vector* vec_pt) {
     printf("\n");
 }
 
-void vec_setZeroes(struct Vector* vec_pt) {
+void vec_set_zeroes(struct Vector* vec_pt) {
     for (size_t i = 0; i < vec_pt->dim; i++) {
         vec_pt->data[i] = 0;
     }
 }
 
-void vec_setOnes(struct Vector* vec_pt) {
+void vec_set_ones(struct Vector* vec_pt) {
     for (size_t i = 0; i < vec_pt->dim; i++) {
         vec_pt->data[i] = 1;
     }
@@ -62,7 +65,7 @@ void vec_normalize(struct Vector* vec_pt) {
 }
 
 void vec_copy(const struct Vector* vec_from_pt, struct Vector* vec_to_pt) {
-    memcpy(vec_from_pt, vec_to_pt, sizeof(struct Vector) + vec_from_pt->dim * sizeof(double));
+    memcpy(vec_to_pt, vec_from_pt, sizeof(struct Vector) + (vec_from_pt->dim * sizeof(double)));
 }
 
 void vec_smul(struct Vector* vec_pt, double scale) {

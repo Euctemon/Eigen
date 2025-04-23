@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable : 4200)
 
 // Data stored as flexible-array member.
 struct Vector {
@@ -12,9 +13,9 @@ void vec_write_file(const struct Vector* vec_pt, const char filepath[]);
 
 void vec_write_console(const struct Vector* vec_pt);
 
-void vec_setZeroes(struct Vector* vec_pt);
+void vec_set_zeroes(struct Vector* vec_pt);
 
-void vec_setOnes(struct Vector* vec_pt);
+void vec_set_ones(struct Vector* vec_pt);
 
 void vec_normalize(struct Vector* vec_pt);
 

@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable : 4200)
 
 // Data stored as flexible array member.
 struct Matrix {

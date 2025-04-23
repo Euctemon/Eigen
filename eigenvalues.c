@@ -1,6 +1,6 @@
 #include "eigenvalues.h"
 
-struct Node* get_tail(const struct Node* const head) {
+struct Node* get_tail(struct Node* head) {
 	struct Node* current = head;
 
 	while (current->next != NULL) {
@@ -10,7 +10,7 @@ struct Node* get_tail(const struct Node* const head) {
 	return current;
 }
 
-bool list_add(const struct Node** head_pt, const struct EigenPair data) {
+bool list_add(struct Node** head_pt, const struct EigenPair data) {
 	bool added = true;
 	struct Node* node = malloc(sizeof(struct Node));
 	
@@ -44,7 +44,7 @@ void list_delete(struct Node** head) {
 	}
 }
 
-void gemv(const struct Matrix* mat_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
+void gemv(const struct Matrix* const mat_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
 	for (size_t i = 0; i < mat_pt->dim; i++)
 	{
 		vec_out_pt->data[i] = 0;
@@ -63,10 +63,10 @@ void eigenpair_write_console(const struct EigenPair eigen_pair) {
 
 void compute_deflate_vector(const struct Node* const* eigen_list, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
 	struct Vector* vec_temp_pt = vec_init(vec_in_pt->dim);
-	struct Node* eigen_pair = eigen_list == NULL ? NULL : (*eigen_list);
+	const struct Node* eigen_pair = eigen_list == NULL ? NULL : (*eigen_list);
 	double scale;
 
-	vec_setZeroes(vec_out_pt);
+	vec_set_zeroes(vec_out_pt);
 
 	while (eigen_pair != NULL)
 	{

@@ -19,7 +19,7 @@ struct Node {
     struct Node* next;
 };
 
-bool list_add(const struct Node** head_pt, const struct EigenPair data);
+bool list_add(struct Node** head_pt, const struct EigenPair data);
 
 void list_delete(struct Node** head);
 
