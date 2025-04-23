@@ -1,15 +1,16 @@
 #pragma once
 
+// Data stored as flexible array member.
 struct Matrix {
 	unsigned int dim;
-	double* data;
+	double data[];
 };
 
-struct Matrix mat_init(unsigned int dim);
+struct Matrix* mat_init(size_t dim);
 
-struct Matrix mat_read(char filepath[]);
+struct Matrix* mat_read(const char filepath[]);
 
-void mat_free(struct Matrix mat);
+void mat_write(const struct Matrix* mat_pt, const char filepath[]);
 
-void mat_write(struct Matrix mat, char filepath[]);
+bool mat_symm_check(const struct Matrix* mat_pt);
 
