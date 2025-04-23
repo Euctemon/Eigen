@@ -1,7 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-
 #include "matrix.h"
 
 struct Matrix* mat_init(size_t dim) {
@@ -83,7 +79,7 @@ void mat_write_console(const struct Matrix* mat_pt) {
 	printf("\n");
 }
 
-bool mat_symm_check(const struct Matrix* mat_pt) {
+bool mat_is_symm(const struct Matrix* mat_pt) {
 	for (size_t i = 0; i < mat_pt->dim; i++) {
 		for (size_t j = i + 1; j < mat_pt->dim; j++) {
 			if (mat_pt->data[i * mat_pt->dim + j] != mat_pt->data[j * mat_pt->dim + i]) {

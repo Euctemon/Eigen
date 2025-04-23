@@ -1,7 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
 #include "vector.h"
 
 struct Vector* vec_init(size_t dim) {

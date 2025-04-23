@@ -1,6 +1,6 @@
 #include "eigenvalues.h"
 
-struct Node* get_tail(struct Node* head) {
+static struct Node* get_tail(struct Node* head) {
 	struct Node* current = head;
 
 	while (current->next != NULL) {
@@ -78,14 +78,28 @@ void compute_deflate_vector(const struct Node* const* eigen_list, const struct V
 		
 		eigen_pair = eigen_pair->next;
 	}
-    vec_smul(vec_out_pt, -1.0);
+    vec_smul(vec_out_pt, -1);
 	free(vec_temp_pt);
 }
 
-struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol) {
+void repair_sign(const struct Matrix* mat_pt, struct Vector* vec_pt, double* val_pt) {
+	struct Vector* vec_out_pt = vec_init(vec_pt->dim);
+
+	gemv(mat_pt, vec_pt, vec_out_pt);
+	if (vec_dot(vec_pt, vec_out_pt) < 0)
+	{
+		vec_smul(vec_pt, -1);
+		*val_pt = -1 * (*val_pt);
+	}
+
+	free(vec_out_pt);
+}
+
+struct EigenPair eigenpair_compute(const struct Node** eigen_list, const struct Matrix* mat_pt, double tol, bool converged) {
     double val_current = 1;
     double val_next = 1;
     size_t iter_count = 0;
+	converged = false;
 
 	struct EigenPair eigenpair = { 0,NULL };
     struct Vector* vec_current_pt = vec_init(mat_pt->dim);
@@ -93,6 +107,7 @@ struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const s
     struct Vector* vec_deflate_pt = vec_init(mat_pt->dim);
 
     vec_set_ones(vec_current_pt);
+	vec_normalize(vec_current_pt);
 
     while (true) {
         iter_count++;
@@ -106,18 +121,58 @@ struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const s
 
         val_next = vec_dot(vec_current_pt, vec_next_pt);
 
-        if (fabs(val_next - val_current) <= tol || iter_count > 10) {
-            break;
+        if (fabs(val_next - val_current) <= tol) {
+			converged = true;
+			break;
         }
+		if (iter_count > 50)
+		{
+			converged = false;
+			break;
+		}
 
         val_current = val_next;
     }
 
+	repair_sign(mat_pt, vec_current_pt, &val_current);
     eigenpair.val = val_current;
 	eigenpair.vec = vec_current_pt;
-
+	
     free(vec_next_pt);
     free(vec_deflate_pt);
 
     return eigenpair;
+}
+
+void compute_and_write(const char filepath[], size_t num_of_eigenvals) {
+	struct Matrix* mat_pt = mat_read(filepath);
+	struct Node* eigen_list = NULL;
+	struct EigenPair current_pair;
+	size_t iter_count = num_of_eigenvals < mat_pt->dim ? num_of_eigenvals : mat_pt->dim;
+	bool converged = true;
+
+	if (!mat_is_symm(mat_pt))
+	{
+		printf("the matrix is not symmetric");
+		free(mat_pt);
+		return;
+	}
+	
+	for (size_t i = 0; i < iter_count; i++) {
+		current_pair = eigenpair_compute(&eigen_list, mat_pt, 1.0E-5, converged);
+		if (converged) {
+			printf("the computed pair number %zu: \n", i+1);
+			eigenpair_write_console(current_pair);
+			printf("\n");
+
+			list_add(&eigen_list, current_pair);
+		}
+		else {
+			printf("the computation of %zu. eigenvalue did not converge", i+1);
+			break;
+		}
+	}
+
+	free(mat_pt);
+	list_delete(&eigen_list);
 }

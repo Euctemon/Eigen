@@ -1,6 +1,12 @@
 #pragma once
 #pragma warning(disable : 4200)
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+
+
 // Data stored as flexible-array member.
 struct Vector {
 	size_t dim;
