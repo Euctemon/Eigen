@@ -1,67 +1,6 @@
 #include "eigenvalues.h"
 
-void gemv(struct Matrix mat, struct Vector vec_in, struct Vector vec_out) {
-	for (size_t i = 0; i < mat.dim; i++)
-	{
-		vec_out.data[i] = 0;
-		for (size_t j = 0; j < mat.dim; j++)
-		{
-			vec_out.data[i] = vec_out.data[i] + mat.data[i * mat.dim + j] * vec_in.data[j];
-		}
-	}
-}
-
-void eigenpair_writeConsole(struct EigenPair eigenpair) {
-    printf("eigenvalue approximation : %f\n", eigenpair.eigenval);
-    
-    printf("eigenvector approximation : ");
-    vec_writeConsole(eigenpair.eigenvec);
-    printf("\n");
-}
-
-void eigenpair_free(struct EigenPair eigenpair) {
-    vec_free(eigenpair.eigenvec);
-}
-
-//struct EigenPair eigenpair_compute(struct Matrix mat, double tol) {
-//    double val_current = 1;
-//    double val_next = 1;
-//    size_t iter_count = 0;
-//
-//    struct EigenPair eigenpair = {0, vec_init(mat.dim)};
-//    struct Vector vec_current = vec_init(mat.dim);
-//    struct Vector vec_next = vec_init(mat.dim);
-//
-//    vec_setOnes(vec_current);
-//
-//    while (true) {
-//        iter_count++;
-//
-//        gemv(mat, vec_current, vec_next);
-//        
-//        vec_copy(vec_next, vec_current);
-//        vec_normalize(vec_current);
-//        val_next = vec_dot(vec_current, vec_next);
-//
-//        if (fabs(val_next-val_current) <= tol || iter_count > 100) {
-//            break;
-//        }
-//
-//        val_current = val_next;
-//    }
-//
-//    eigenpair.eigenval = val_current;
-//    vec_copy(vec_current, eigenpair.eigenvec);
-//
-//    vec_free(vec_current);
-//    vec_free(vec_next);
-//
-//    return eigenpair;
-//}
-
-
-
-struct Node* get_tail(struct Node* head) {
+struct Node* get_tail(const struct Node* const head) {
 	struct Node* current = head;
 
 	while (current->next != NULL) {
@@ -71,19 +10,19 @@ struct Node* get_tail(struct Node* head) {
 	return current;
 }
 
-bool list_add(struct Node** head, struct EigenPair* data) {
+bool list_add(const struct Node** head_pt, const struct EigenPair data) {
 	bool added = true;
 	struct Node* node = malloc(sizeof(struct Node));
-
+	
 	if (node == NULL) {
 		added = false;
 	}
 	else {
-		if (*head == NULL) {
-			*head = node;
+		if (*head_pt == NULL) {
+			*head_pt = node;
 		}
 		else {
-			get_tail(*head)->next = node;
+			get_tail(*head_pt)->next = node;
 		}
 		node->data = data;
 		node->next = NULL;
@@ -99,68 +38,86 @@ void list_delete(struct Node** head) {
 	while (current != NULL)
 	{
 		next = current->next;
-		eigenpair_free(*current->data);
+		free(current->data.vec);
 		free(current);
 		current = next;
 	}
 }
 
-void compute_deflate_vector(struct Node** pair_list, struct Vector vec_in, struct Vector vec_out) {
-	struct Vector vec_temp = vec_init(vec_in.dim);
-	struct Node* current_pair = pair_list == NULL ? NULL : (*pair_list);
-	double scale;
-
-	vec_setZeroes(vec_out);
-
-	while (current_pair != NULL)
+void gemv(const struct Matrix* mat_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
+	for (size_t i = 0; i < mat_pt->dim; i++)
 	{
-		scale = current_pair->data->eigenval * vec_dot(current_pair->data->eigenvec, vec_in);
-		vec_copy(current_pair->data->eigenvec, vec_temp);
-		vec_smul(vec_temp, scale);
-		vec_add(vec_out, vec_temp);
-		current_pair = current_pair->next;
+		vec_out_pt->data[i] = 0;
+		for (size_t j = 0; j < mat_pt->dim; j++)
+		{
+			vec_out_pt->data[i] = vec_out_pt->data[i] + mat_pt->data[i * mat_pt->dim + j] * vec_in_pt->data[j];
+		}
 	}
-    vec_smul(vec_out, -1.0);
-	vec_free(vec_temp);
 }
 
-struct EigenPair eigenpair_compute(struct Matrix mat,struct Node** pair_list, double tol) {
+void eigenpair_write_console(const struct EigenPair eigen_pair) {
+    printf("eigenvalue approximation : %f\n", eigen_pair.val);
+    printf("eigenvector approximation : ");
+    vec_write_console(eigen_pair.vec);
+}
+
+void compute_deflate_vector(const struct Node* const* eigen_list, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
+	struct Vector* vec_temp_pt = vec_init(vec_in_pt->dim);
+	struct Node* eigen_pair = eigen_list == NULL ? NULL : (*eigen_list);
+	double scale;
+
+	vec_setZeroes(vec_out_pt);
+
+	while (eigen_pair != NULL)
+	{
+		scale = eigen_pair->data.val * vec_dot(eigen_pair->data.vec, vec_in_pt);
+		
+		vec_copy(eigen_pair->data.vec, vec_temp_pt);
+		vec_smul(vec_temp_pt, scale);
+		vec_add(vec_out_pt, vec_temp_pt);
+		
+		eigen_pair = eigen_pair->next;
+	}
+    vec_smul(vec_out_pt, -1.0);
+	free(vec_temp_pt);
+}
+
+struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol) {
     double val_current = 1;
     double val_next = 1;
     size_t iter_count = 0;
 
-    struct EigenPair eigenpair = { 0, vec_init(mat.dim) };
-    struct Vector vec_current = vec_init(mat.dim);
-    struct Vector vec_next = vec_init(mat.dim);
-    struct Vector vec_deflate = vec_init(mat.dim);
+	struct EigenPair eigenpair = { 0,NULL };
+    struct Vector* vec_current_pt = vec_init(mat_pt->dim);
+    struct Vector* vec_next_pt = vec_init(mat_pt->dim);
+    struct Vector* vec_deflate_pt = vec_init(mat_pt->dim);
 
-    vec_setOnes(vec_current);
+    vec_set_ones(vec_current_pt);
 
     while (true) {
         iter_count++;
 
-        gemv(mat, vec_current, vec_next);
-        compute_deflate_vector(pair_list, vec_current, vec_deflate);
+        gemv(mat_pt, vec_current_pt, vec_next_pt);
+        compute_deflate_vector(eigen_list, vec_current_pt, vec_deflate_pt);
     
-        vec_add(vec_next, vec_deflate);
-        vec_copy(vec_next, vec_current);
-        vec_normalize(vec_current);
+        vec_add(vec_next_pt, vec_deflate_pt);
+        vec_copy(vec_next_pt, vec_current_pt);
+        vec_normalize(vec_current_pt);
 
-        val_next = vec_dot(vec_current, vec_next);
+        val_next = vec_dot(vec_current_pt, vec_next_pt);
 
-        if (fabs(val_next - val_current) <= tol || iter_count > 100) {
+        if (fabs(val_next - val_current) <= tol || iter_count > 10) {
             break;
         }
 
         val_current = val_next;
     }
 
-    eigenpair.eigenval = val_current;
-    vec_copy(vec_current, eigenpair.eigenvec);
+    eigenpair.val = val_current;
+	eigenpair.vec = vec_current_pt;
 
-    vec_free(vec_current);
-    vec_free(vec_next);
-    vec_free(vec_deflate);
+    free(vec_next_pt);
+    free(vec_deflate_pt);
 
     return eigenpair;
 }

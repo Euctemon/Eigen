@@ -7,7 +7,7 @@
 struct Matrix* mat_init(size_t dim) {
 	struct Matrix* mat_pt = malloc(sizeof(struct Matrix) + dim * sizeof(double));
     
-    if (mat_pt->data == NULL) {
+    if (mat_pt == NULL) {
         printf("could not allocate matrix\n");
         exit(1);
     }
@@ -44,7 +44,7 @@ struct Matrix* mat_read(const char filepath[]) {
 	return mat_pt;
 }
 
-void mat_write(const struct Matrix* mat_pt, const char filepath[]) {
+void mat_write_file(const struct Matrix* mat_pt, const char filepath[]) {
 	FILE* stream = NULL;
 	errno_t err = fopen_s(&stream, filepath, "w");
 
@@ -53,9 +53,9 @@ void mat_write(const struct Matrix* mat_pt, const char filepath[]) {
 	}
 
 	if (stream != NULL) {
-		fprintf(stream, "%u", mat_pt->dim);
+		fprintf(stream, "%zu", mat_pt->dim);
 
-		for (size_t i = 0; i < (size_t)mat_pt->dim * mat_pt->dim; i++) {
+		for (size_t i = 0; i < mat_pt->dim * mat_pt->dim; i++) {
 			if (i % mat_pt->dim == 0) {
 				fprintf(stream, "\n%lf", mat_pt->data[i]);
 			}
@@ -66,6 +66,18 @@ void mat_write(const struct Matrix* mat_pt, const char filepath[]) {
 
 		fclose(stream);
 	}
+}
+
+void mat_write_console(const struct Matrix* mat_pt) {
+	for (size_t i = 0; i < mat_pt->dim * mat_pt->dim; i++) {
+		if (i % mat_pt->dim == 0) {
+			printf("\n%lf", mat_pt->data[i]);
+		}
+		else {
+			printf(" %lf", mat_pt->data[i]);
+		}
+	}
+	printf("\n");
 }
 
 bool mat_symm_check(const struct Matrix* mat_pt) {

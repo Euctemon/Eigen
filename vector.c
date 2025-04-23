@@ -15,7 +15,7 @@ struct Vector* vec_init(size_t dim) {
     return vec_pt;
 }
 
-void vec_writeFile(const struct Vector* vec_pt, const char filepath[]) {
+void vec_write_file(const struct Vector* vec_pt, const char filepath[]) {
     FILE* stream = NULL;
     errno_t err = fopen_s(&stream, filepath, "w");
 
@@ -34,10 +34,11 @@ void vec_writeFile(const struct Vector* vec_pt, const char filepath[]) {
     }
 }
 
-void vec_writeConsole(const struct Vector* vec_pt) {
+void vec_write_console(const struct Vector* vec_pt) {
     for (size_t i = 0; i < vec_pt->dim; i++) {
         printf("%lf ", vec_pt->data[i]);
     }
+    printf("\n");
 }
 
 void vec_setZeroes(struct Vector* vec_pt) {
@@ -53,7 +54,7 @@ void vec_setOnes(struct Vector* vec_pt) {
 }
 
 void vec_normalize(struct Vector* vec_pt) {
-    double norm = sqrt(vec_power(vec_pt));
+    double norm = sqrt(vec_single_dot(vec_pt));
 
     for (size_t i = 0; i < vec_pt->dim; i++) {
         vec_pt->data[i] = vec_pt->data[i] / norm;
@@ -76,7 +77,7 @@ void vec_add(struct Vector* vec1_pt, const struct Vector* vec2_pt) {
     }
 }
 
-double vec_power(const struct Vector* vec_pt) {
+double vec_single_dot(const struct Vector* vec_pt) {
     double res = 0;
 
     for (size_t i = 0; i < vec_pt->dim; i++) {

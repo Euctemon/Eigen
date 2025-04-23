@@ -7,27 +7,26 @@
 #include "matrix.h"
 #include "vector.h"
 
+// Structure holding eigenvalue and corresponding eigenvector.
 struct EigenPair {
-    double eigenval;
-    struct Vector eigenvec;
+    double val;
+    struct Vector* vec;
 };
 
+// Structure for singly linked list.
 struct Node {
-    struct EigenPair* data;
+    struct EigenPair data;
     struct Node* next;
 };
 
-void gemv(struct Matrix mat, struct Vector vec_in, struct Vector vec_out);
-
-void eigenpair_writeConsole(struct EigenPair eigenpair);
-
-void eigenpair_free(struct EigenPair eigenpair);
-
-struct EigenPair eigenpair_compute(struct Matrix mat, struct Node** pair_list, double tol);
-
-bool list_add(struct Node** head, struct EigenPair* data);
+bool list_add(const struct Node** head_pt, const struct EigenPair data);
 
 void list_delete(struct Node** head);
 
-void compute_deflate_vector(struct Node** head, struct Vector vec_in, struct Vector vec_out);
+void gemv(const struct Matrix* mat_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt);
 
+void eigenpair_write_console(const struct EigenPair eigen_pair);
+
+void compute_deflate_vector(const struct Node* const* eigen_list, const struct Vector* vec_in_pt, struct Vector* vec_out_pt);
+
+struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol);
