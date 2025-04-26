@@ -1,4 +1,5 @@
 #include "vector.h"
+#define TOL 1E-12
 
 struct Vector* vec_init(size_t dim) {
     struct Vector* vec_pt = malloc(sizeof(struct Vector) + dim * sizeof(double));
@@ -55,6 +56,10 @@ void vec_set_ones(struct Vector* vec_pt) {
 void vec_normalize(struct Vector* vec_pt) {
     double norm = sqrt(vec_single_dot(vec_pt));
 
+    if (norm < TOL) {
+        return;
+    }
+
     for (size_t i = 0; i < vec_pt->dim; i++) {
         vec_pt->data[i] = vec_pt->data[i] / norm;
     }
@@ -94,4 +99,8 @@ double vec_dot(const struct Vector* restrict vec1_pt, const struct Vector* restr
     }
 
     return res;
+}
+
+bool eq_num_zero_vec(const struct Vector* vec_pt) {
+    return (vec_single_dot(vec_pt) < TOL) ? true : false;
 }
