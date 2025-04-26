@@ -7,7 +7,6 @@
 #include <math.h>
 #include <string.h>
 
-
 // Data stored as flexible-array member.
 struct Vector {
 	size_t dim;
@@ -37,7 +36,7 @@ void vec_add(struct Vector* vec1_pt, const struct Vector* vec2_pt);
 double vec_single_dot(const struct Vector* vec_pt);
 
 // Dot product of non-overlapping vectors.
-double vec_dot(const struct Vector* restrict vec1_pt, const struct Vector* restrict vec2_pt);
+double vec_dot(const struct Vector* vec1_pt, const struct Vector* vec2_pt);
 
 // Checks if the vector is numerically equal to the zero vector.
 bool eq_num_zero_vec(const struct Vector* vec_pt);

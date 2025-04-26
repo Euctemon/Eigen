@@ -12,7 +12,7 @@ static struct Node* get_tail(struct Node* head) {
 
 bool list_add(struct Node** head_pt, const struct EigenPair data) {
 	bool added = true;
-	struct Node* node = malloc(sizeof(struct Node));
+	struct Node* node = (struct Node* )malloc(sizeof(struct Node));
 	
 	if (node == NULL) {
 		added = false;
@@ -38,10 +38,15 @@ void list_delete(struct Node** head) {
 	while (current != NULL)
 	{
 		next = current->next;
-		free(current->data.vec);
+		
+		if (current->data.vec != NULL) {
+			free(current->data.vec);
+		}
+
 		free(current);
 		current = next;
 	}
+	*head = NULL;
 }
 
 void gemv(const struct Matrix* const mat_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
@@ -100,7 +105,7 @@ double small_rand() {
 	return (double)(rand() % 100) / 100;
 }
 
-struct Vector* get_image_space_vec(const struct Node** eigen_list, const struct Matrix* mat_pt, bool* empty_image_pt) {
+struct Vector* get_image_space_vec(const struct Node* const* eigen_list, const struct Matrix* mat_pt, bool* empty_image_pt) {
 	struct Vector* vec_current_pt = vec_init(mat_pt->dim);
 	struct Vector* vec_next_pt = vec_init(mat_pt->dim);
 	struct Vector* vec_deflate_pt = vec_init(mat_pt->dim);
@@ -138,7 +143,7 @@ struct Vector* get_image_space_vec(const struct Node** eigen_list, const struct 
 	return vec_current_pt;
 }
 
-struct EigenPair eigenpair_compute(const struct Node** eigen_list, const struct Matrix* mat_pt, double tol, bool* converged_pt, bool* empty_image_pt) {
+struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol, bool* converged_pt, bool* empty_image_pt) {
 	struct Vector* vec_current_pt = get_image_space_vec(eigen_list, mat_pt, empty_image_pt);
 	struct Vector* vec_next_pt;
 	struct Vector* vec_deflate_pt;

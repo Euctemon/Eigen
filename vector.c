@@ -2,7 +2,7 @@
 #define TOL 1E-12
 
 struct Vector* vec_init(size_t dim) {
-    struct Vector* vec_pt = malloc(sizeof(struct Vector) + dim * sizeof(double));
+    struct Vector* vec_pt = (struct Vector*)malloc(sizeof(struct Vector) + dim * sizeof(double));
     
     if (vec_pt == NULL) {
         printf("could not allocate vector\n");
@@ -91,7 +91,7 @@ double vec_single_dot(const struct Vector* vec_pt) {
     return res;
 }
 
-double vec_dot(const struct Vector* restrict vec1_pt, const struct Vector* restrict vec2_pt) {
+double vec_dot(const struct Vector* vec1_pt, const struct Vector* vec2_pt) {
     double res = 0;
 
     for (size_t i = 0; i < vec1_pt->dim; i++) {

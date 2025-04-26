@@ -1,7 +1,7 @@
 #include "matrix.h"
 
 struct Matrix* mat_init(size_t dim) {
-	struct Matrix* mat_pt = malloc(sizeof(struct Matrix) + dim * dim * sizeof(double));
+	struct Matrix* mat_pt = (struct Matrix*)malloc(sizeof(struct Matrix) + dim * dim * sizeof(double));
 
     if (mat_pt == NULL) {
         printf("could not allocate matrix\n");
