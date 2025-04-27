@@ -12,7 +12,7 @@ static struct Node* get_tail(struct Node* head) {
 
 bool list_add(struct Node** head_pt, const struct EigenPair data) {
 	bool added = true;
-	struct Node* node = (struct Node* )malloc(sizeof(struct Node));
+	struct Node* node = (struct Node*)malloc(sizeof(struct Node));
 	
 	if (node == NULL) {
 		added = false;
@@ -37,12 +37,8 @@ void list_delete(struct Node** head) {
 
 	while (current != NULL)
 	{
-		next = current->next;
-		
-		if (current->data.vec != NULL) {
-			free(current->data.vec);
-		}
-
+		next = current->next;		
+		free(current->data.vec);
 		free(current);
 		current = next;
 	}
@@ -209,7 +205,7 @@ void compute_and_write(const char filepath[], size_t num_of_eigenvals) {
 	}
 	
 	for (size_t i = 0; i < iter_count; i++) {
-		current_pair = eigenpair_compute(&eigen_list, mat_pt, 1.0E-5, &converged, &empty_image);
+		current_pair = eigenpair_compute(&eigen_list, mat_pt, 1E-8, &converged, &empty_image);
 		
 		list_add(&eigen_list, current_pair);
 		if (empty_image) {

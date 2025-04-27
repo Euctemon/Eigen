@@ -7,6 +7,8 @@
 #include <math.h>
 #include <string.h>
 
+#define TOL 1E-12
+
 // Data stored as flexible-array member.
 struct Vector {
 	size_t dim;

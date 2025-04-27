@@ -1,5 +1,4 @@
 #include "vector.h"
-#define TOL 1E-12
 
 struct Vector* vec_init(size_t dim) {
     struct Vector* vec_pt = (struct Vector*)malloc(sizeof(struct Vector) + dim * sizeof(double));
