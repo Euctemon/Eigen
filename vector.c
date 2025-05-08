@@ -1,13 +1,12 @@
 #include "vector.h"
 
+static const double TOL = 1E-12;
+
+
 struct Vector* vec_init(size_t dim) {
-    struct Vector* vec_pt = (struct Vector*)malloc(sizeof(struct Vector) + dim * sizeof(double));
+    struct Vector* vec_pt = malloc(sizeof(struct Vector) + dim * sizeof(double));
     
-    if (vec_pt == NULL) {
-        printf("could not allocate vector\n");
-        exit(1);
-    }
-    else {
+    if (vec_pt != NULL) {
         vec_pt->dim = dim;
     }
 
@@ -19,7 +18,7 @@ void vec_write_file(const struct Vector* vec_pt, const char filepath[]) {
     errno_t err = fopen_s(&stream, filepath, "w");
 
     if (err != 0) {
-        printf("writing to file: file was not opened\n");
+        printf("could not write the vector to the file\n");
     }
 
     if (stream != NULL) {
@@ -53,7 +52,7 @@ void vec_set_ones(struct Vector* vec_pt) {
 }
 
 void vec_normalize(struct Vector* vec_pt) {
-    double norm = sqrt(vec_single_dot(vec_pt));
+    double norm = sqrt(vec_dot(vec_pt, vec_pt));
 
     if (norm < TOL) {
         return;
@@ -80,16 +79,6 @@ void vec_add(struct Vector* vec1_pt, const struct Vector* vec2_pt) {
     }
 }
 
-double vec_single_dot(const struct Vector* vec_pt) {
-    double res = 0;
-
-    for (size_t i = 0; i < vec_pt->dim; i++) {
-        res = res + vec_pt->data[i] * vec_pt->data[i];
-    }
-
-    return res;
-}
-
 double vec_dot(const struct Vector* vec1_pt, const struct Vector* vec2_pt) {
     double res = 0;
 
@@ -101,5 +90,5 @@ double vec_dot(const struct Vector* vec1_pt, const struct Vector* vec2_pt) {
 }
 
 bool eq_num_zero_vec(const struct Vector* vec_pt) {
-    return (vec_single_dot(vec_pt) < TOL) ? true : false;
+    return (vec_dot(vec_pt, vec_pt) < TOL) ? true : false;
 }

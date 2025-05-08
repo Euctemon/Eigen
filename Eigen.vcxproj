@@ -149,7 +149,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="eigenvalues.c" />
-    <ClCompile Include="main.c" />
     <ClCompile Include="matrix.c" />
     <ClCompile Include="vector.c" />
   </ItemGroup>

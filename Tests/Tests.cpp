@@ -1,23 +1,21 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 
-#define restrict __restrict
-
 extern "C" {
-#include "../matrix.c"
-#include "../vector.c"
-#include "../eigenvalues.c"
+#include "..\eigenvalues.h"
 }
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace Tests
 {
-	TEST_CLASS(Tests) {
+	TEST_CLASS(Tests)
+	{
 	public:
+		
 		TEST_METHOD(List_delete_idempotent) {
 			struct Vector* vec_pt = vec_init(2);
-			struct Node* eigen_list = NULL;
+			struct Node* eigen_list = nullptr;
 
 			list_add(&eigen_list, { 1, vec_pt });
 			list_delete(&eigen_list);
@@ -25,9 +23,10 @@ namespace Tests
 
 			Assert::IsNull(eigen_list);
 		}
+
 		TEST_METHOD(Diagonal_matrix_eigenvalues) {
 			struct Matrix* mat_pt = mat_init(2);
-			struct Node* eigen_list = NULL;
+			struct Node* eigen_list = nullptr;
 			struct EigenPair first = { 0 };
 			struct EigenPair second = { 0 };
 
@@ -57,7 +56,7 @@ namespace Tests
 		}
 		TEST_METHOD(Zero_matrix_image) {
 			struct Matrix* mat_pt = mat_init(2);
-			struct Node* eigen_list = NULL;
+			struct Node* eigen_list = nullptr;
 			struct EigenPair first = { 0 };
 
 			const double tol_compute = 1E-8;
@@ -78,7 +77,7 @@ namespace Tests
 
 		TEST_METHOD(Negative_greatest_eigenvalue) {
 			struct Matrix* mat_pt = mat_init(2);
-			struct Node* eigen_list = NULL;
+			struct Node* eigen_list = nullptr;
 			struct EigenPair first = { 0 };
 
 			const double tol_compute = 1E-8;
@@ -102,5 +101,6 @@ namespace Tests
 
 			Assert::AreEqual(first_exact, first_val, tol_check);
 		}
+
 	};
 }

@@ -1,50 +1,65 @@
 #include "eigenvalues.h"
 
-static struct Node* get_tail(struct Node* head) {
-	struct Node* current = head;
+struct Pool {
+	size_t capacity;
+	struct Vector* data[];
+};
 
-	while (current->next != NULL) {
-		current = current->next;
-	}
+struct Pool* init_pool(size_t capacity, size_t vec_dim) {
+	struct Pool* arena_pt = malloc(sizeof(struct Pool) + capacity * sizeof(struct Vector*));
 
-	return current;
-}
-
-bool list_add(struct Node** head_pt, const struct EigenPair data) {
-	bool added = true;
-	struct Node* node = (struct Node*)malloc(sizeof(struct Node));
-	
-	if (node == NULL) {
-		added = false;
-	}
-	else {
-		if (*head_pt == NULL) {
-			*head_pt = node;
-		}
-		else {
-			get_tail(*head_pt)->next = node;
-		}
-		node->data = data;
-		node->next = NULL;
-	}
-
-	return added;
-}
-
-void list_delete(struct Node** head) {
-	struct Node* current = *head;
-	struct Node* next = *head;
-
-	while (current != NULL)
+	if (arena_pt != NULL)
 	{
-		next = current->next;		
-		free(current->data.vec);
-		free(current);
-		current = next;
+		arena_pt->capacity = capacity;
+		for (size_t i = 0; i < capacity; i++)
+		{
+			arena_pt->data[i] = vec_init(vec_dim);
+		}
 	}
-	*head = NULL;
+
+	return arena_pt;
 }
 
+static void clear_pool(struct Pool* arena_pt) {
+	for (size_t i = 0; i < arena_pt->capacity; i++)
+	{
+		free(arena_pt->data[i]);
+	}
+
+	free(arena_pt);
+}
+
+struct EigenArray* init_eigen_array(size_t num_of_vals, size_t vec_dim) {
+	struct EigenArray* array_pt = malloc(sizeof(struct EigenArray) + num_of_vals * sizeof(struct Eigenpair));
+
+	if (array_pt != NULL)
+	{
+		array_pt->capacity = num_of_vals;
+		array_pt->filled = 0;
+
+		array_pt->capacity = num_of_vals;
+		for (size_t i = 0; i < num_of_vals; i++)
+		{
+			array_pt->data[i].eigenvec = vec_init(vec_dim);
+		}
+	}
+
+	return array_pt;
+}
+
+void clear_eigen_array(struct EigenArray* array_pt) {
+	for (size_t i = 0; i < array_pt->capacity; i++)
+	{
+		free(array_pt->data[i].eigenvec);
+	}
+
+	free(array_pt);
+}
+
+
+
+
+// huh
 void gemv(const struct Matrix* const mat_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
 	for (size_t i = 0; i < mat_pt->dim; i++)
 	{
@@ -56,7 +71,64 @@ void gemv(const struct Matrix* const mat_pt, const struct Vector* vec_in_pt, str
 	}
 }
 
-void eigenpair_write_console(const struct EigenPair eigen_pair) {
+
+
+
+
+
+
+
+// get rid of slow linked list
+//static struct Node* get_tail(struct Node* head) {
+//	struct Node* current = head;
+//
+//	while (current->next != NULL) {
+//		current = current->next;
+//	}
+//
+//	return current;
+//}
+//
+//bool list_add(struct Node** head_pt, const struct Eigenpair data) {
+//	bool added = true;
+//	struct Node* node = (struct Node*)malloc(sizeof(struct Node));
+//	
+//	if (node == NULL) {
+//		added = false;
+//	}
+//	else {
+//		if (*head_pt == NULL) {
+//			*head_pt = node;
+//		}
+//		else {
+//			get_tail(*head_pt)->next = node;
+//		}
+//		node->data = data;
+//		node->next = NULL;
+//	}
+//
+//	return added;
+//}
+//
+//void list_delete(struct Node** head) {
+//	struct Node* current = *head;
+//	struct Node* next = *head;
+//
+//	while (current != NULL)
+//	{
+//		next = current->next;		
+//		free(current->data.vec);
+//		free(current);
+//		current = next;
+//	}
+//	*head = NULL;
+//}
+
+
+
+
+
+void eigenpair_write_console(const struct Eigenpair eigen_pair) {
     printf("eigenvalue approximation : %f\n", eigen_pair.val);
     printf("eigenvector approximation : ");
     vec_write_console(eigen_pair.vec);
@@ -139,11 +211,11 @@ struct Vector* get_image_space_vec(const struct Node* const* eigen_list, const s
 	return vec_current_pt;
 }
 
-struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol, bool* converged_pt, bool* empty_image_pt) {
+struct Eigenpair eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol, bool* converged_pt, bool* empty_image_pt) {
 	struct Vector* vec_current_pt = get_image_space_vec(eigen_list, mat_pt, empty_image_pt);
 	struct Vector* vec_next_pt;
 	struct Vector* vec_deflate_pt;
-	struct EigenPair eigenpair = { 0,vec_current_pt };
+	struct Eigenpair eigenpair = { 0,vec_current_pt };
 	double val_current = 1;
     double val_next = 1;
     size_t iter_count = 0;
@@ -193,7 +265,7 @@ struct EigenPair eigenpair_compute(const struct Node* const* eigen_list, const s
 void compute_and_write(const char filepath[], size_t num_of_eigenvals) {
 	struct Matrix* mat_pt = mat_read(filepath);
 	struct Node* eigen_list = NULL;
-	struct EigenPair current_pair;
+	struct Eigenpair current_pair;
 	size_t iter_count = num_of_eigenvals < mat_pt->dim ? num_of_eigenvals : mat_pt->dim;
 	bool converged = true;
 	bool empty_image = true;

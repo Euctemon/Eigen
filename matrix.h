@@ -1,9 +1,9 @@
 #pragma once
 #pragma warning(disable : 4200)
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 // Data stored as flexible array member.
