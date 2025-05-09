@@ -1,45 +1,33 @@
 #include "eigenvalues.h"
 
-struct Pool {
-	size_t capacity;
-	struct Vector* data[];
+struct State {
+	struct Vector* vec_pt;
+	enum { converged, not_converged };
 };
 
-struct Pool* init_pool(size_t capacity, size_t vec_dim) {
-	struct Pool* arena_pt = malloc(sizeof(struct Pool) + capacity * sizeof(struct Vector*));
 
-	if (arena_pt != NULL)
-	{
-		arena_pt->capacity = capacity;
-		for (size_t i = 0; i < capacity; i++)
-		{
-			arena_pt->data[i] = vec_init(vec_dim);
-		}
-	}
+enum convergence { converged, diverged, unknown };
 
-	return arena_pt;
-}
+struct VectorState {
+	struct Vector* vec_pt;
+	enum convergence state;
+};
 
-static void clear_pool(struct Pool* arena_pt) {
-	for (size_t i = 0; i < arena_pt->capacity; i++)
-	{
-		free(arena_pt->data[i]);
-	}
+struct EigenpairState {
+	struct Eigenpair pair;
+	enum convergence state;
+};
 
-	free(arena_pt);
-}
+
 
 struct EigenArray* init_eigen_array(size_t num_of_vals, size_t vec_dim) {
 	struct EigenArray* array_pt = malloc(sizeof(struct EigenArray) + num_of_vals * sizeof(struct Eigenpair));
 
-	if (array_pt != NULL)
-	{
+	if (array_pt != NULL) {
 		array_pt->capacity = num_of_vals;
 		array_pt->filled = 0;
 
-		array_pt->capacity = num_of_vals;
-		for (size_t i = 0; i < num_of_vals; i++)
-		{
+		for (size_t i = 0; i < num_of_vals; i++) {
 			array_pt->data[i].eigenvec = vec_init(vec_dim);
 		}
 	}
@@ -48,8 +36,7 @@ struct EigenArray* init_eigen_array(size_t num_of_vals, size_t vec_dim) {
 }
 
 void clear_eigen_array(struct EigenArray* array_pt) {
-	for (size_t i = 0; i < array_pt->capacity; i++)
-	{
+	for (size_t i = 0; i < array_pt->capacity; i++) {
 		free(array_pt->data[i].eigenvec);
 	}
 
@@ -61,18 +48,14 @@ void clear_eigen_array(struct EigenArray* array_pt) {
 
 // huh
 void gemv(const struct Matrix* const mat_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
-	for (size_t i = 0; i < mat_pt->dim; i++)
-	{
+	for (size_t i = 0; i < mat_pt->dim; i++) {
 		vec_out_pt->data[i] = 0;
-		for (size_t j = 0; j < mat_pt->dim; j++)
-		{
+
+		for (size_t j = 0; j < mat_pt->dim; j++) {
 			vec_out_pt->data[i] = vec_out_pt->data[i] + mat_pt->data[i * mat_pt->dim + j] * vec_in_pt->data[j];
 		}
 	}
 }
-
-
-
 
 
 
@@ -128,55 +111,46 @@ void gemv(const struct Matrix* const mat_pt, const struct Vector* vec_in_pt, str
 
 
 
-void eigenpair_write_console(const struct Eigenpair eigen_pair) {
-    printf("eigenvalue approximation : %f\n", eigen_pair.val);
+void eigenpair_write_console(const struct Eigenpair pair) {
+    printf("eigenvalue approximation : %f\n", pair.eigenval);
     printf("eigenvector approximation : ");
-    vec_write_console(eigen_pair.vec);
+    vec_write_console(pair.eigenvec);
 }
 
-void compute_deflate_vector(const struct Node* const* eigen_list, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
+void compute_deflate_vector(const struct EigenArray* array_pt, const struct Vector* vec_in_pt, struct Vector* vec_out_pt) {
 	struct Vector* vec_temp_pt = vec_init(vec_in_pt->dim);
-	const struct Node* eigen_pair = eigen_list == NULL ? NULL : (*eigen_list);
 	double scale;
 
 	vec_set_zeroes(vec_out_pt);
-
-	while (eigen_pair != NULL)
-	{
-		scale = -1.0 * eigen_pair->data.val * vec_dot(eigen_pair->data.vec, vec_in_pt);
-		
-		vec_copy(eigen_pair->data.vec, vec_temp_pt);
+	
+	for (size_t i = 0; i < array_pt->filled; i++) {
+		scale = -array_pt->data[i].eigenval * vec_dot(array_pt->data[i].eigenvec, vec_in_pt);
+		vec_copy(array_pt->data[i].eigenvec, vec_temp_pt);
 		vec_smul(vec_temp_pt, scale);
 		vec_add(vec_out_pt, vec_temp_pt);
-		
-		eigen_pair = eigen_pair->next;
 	}
 
 	free(vec_temp_pt);
 }
 
-void repair_sign(const struct Matrix* mat_pt, struct Vector* vec_pt, double* val_pt) {
-	struct Vector* vec_out_pt = vec_init(vec_pt->dim);
+void repair_sign(const struct Matrix* mat_pt, struct Eigenpair pair) {
+	struct Vector* vec_out_pt = vec_init(mat_pt->dim);
 
-	gemv(mat_pt, vec_pt, vec_out_pt);
+	gemv(mat_pt, pair.eigenvec, vec_out_pt);
 
-	if (vec_dot(vec_pt, vec_out_pt) < 0)
-	{
-		vec_smul(vec_pt, -1);
-		*val_pt = -1 * (*val_pt);
+	if (vec_dot(pair.eigenvec, vec_out_pt) < 0) {
+		vec_smul(pair.eigenvec, -1);
+		pair.eigenval = -pair.eigenval;
 	}
 
 	free(vec_out_pt);
 }
 
-double small_rand() {
-	return (double)(rand() % 100) / 100;
-}
-
-struct Vector* get_image_space_vec(const struct Node* const* eigen_list, const struct Matrix* mat_pt, bool* empty_image_pt) {
+struct VectorState get_image_vec(const struct EigenArray* array_pt, const struct Matrix* mat_pt) {
 	struct Vector* vec_current_pt = vec_init(mat_pt->dim);
 	struct Vector* vec_next_pt = vec_init(mat_pt->dim);
 	struct Vector* vec_deflate_pt = vec_init(mat_pt->dim);
+	enum convergence state = unknown;
 	size_t iter_count = 0;
 	
 	vec_set_ones(vec_current_pt);
@@ -185,83 +159,73 @@ struct Vector* get_image_space_vec(const struct Node* const* eigen_list, const s
 		iter_count++;
 
 		gemv(mat_pt, vec_current_pt, vec_next_pt);
-		compute_deflate_vector(eigen_list, vec_current_pt, vec_deflate_pt);
+		compute_deflate_vector(array_pt, vec_current_pt, vec_deflate_pt);
 		vec_add(vec_next_pt, vec_deflate_pt);
 		
-		if(iter_count > 10) {
-			*empty_image_pt = true;
-			break;
-		}
+		if (iter_count > 10) break; // cannot decide if diverges, so still unknown state
 
 		if (eq_num_zero_vec(vec_next_pt)) {
 			vec_copy(vec_next_pt, vec_current_pt);
-			vec_current_pt->data[iter_count % (vec_current_pt->dim - 1)] += small_rand();
+			vec_current_pt->data[iter_count % (vec_current_pt->dim - 1)] += (double)(rand() % 100) / 100;
 			vec_normalize(vec_current_pt);
 
 		}
 		else {
-			*empty_image_pt = false;
+			state = converged;
 			break;
-		}
+		};
 	}
 	
 	free(vec_next_pt);
 	free(vec_deflate_pt);
 
-	return vec_current_pt;
+	return (struct VectorState) { vec_current_pt, state };
 }
 
-struct Eigenpair eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol, bool* converged_pt, bool* empty_image_pt) {
-	struct Vector* vec_current_pt = get_image_space_vec(eigen_list, mat_pt, empty_image_pt);
-	struct Vector* vec_next_pt;
-	struct Vector* vec_deflate_pt;
-	struct Eigenpair eigenpair = { 0,vec_current_pt };
-	double val_current = 1;
+struct EigenpairState eigenpair_compute(const struct Node* const* eigen_list, const struct Matrix* mat_pt, double tol) {
+	struct VectorState image_vec_state = get_image_vec(eigen_list, mat_pt);
+	struct Vector* vec_next_pt = vec_init(mat_pt->dim);
+	struct Vector* vec_deflate_pt = vec_init(mat_pt->dim);
+	struct Eigenpair eigenpair = { 1,image_vec_state.vec_pt };
+	enum convergence state = unknown;
     double val_next = 1;
     size_t iter_count = 0;
 
-	if (*empty_image_pt) {
-		return eigenpair;
+	if (image_vec_state.state == unknown) {
+		return (struct EigenpairState) { eigenpair, state };
 	}
-
-	vec_next_pt = vec_init(mat_pt->dim);
-	vec_deflate_pt = vec_init(mat_pt->dim);
 
     while (true) {
         iter_count++;
-
-        gemv(mat_pt, vec_current_pt, vec_next_pt);
-        compute_deflate_vector(eigen_list, vec_current_pt, vec_deflate_pt);
-    
+		gemv(mat_pt, eigenpair.eigenvec, vec_next_pt);
+        compute_deflate_vector(eigen_list, eigenpair.eigenvec, vec_deflate_pt);
         vec_add(vec_next_pt, vec_deflate_pt);
-        vec_copy(vec_next_pt, vec_current_pt);
-        vec_normalize(vec_current_pt);
+		vec_copy(vec_next_pt, eigenpair.eigenvec);
+		vec_normalize(eigenpair.eigenvec);
+        val_next = vec_dot(eigenpair.eigenvec, vec_next_pt);
 
-        val_next = vec_dot(vec_current_pt, vec_next_pt);
-
-        if (fabs(val_next - val_current) <= tol) {
-			*converged_pt = true;
+        if (fabs(eigenpair.eigenval - val_next) <= tol) {
+			state = converged;
 			break;
         }
 
 		if (iter_count > 50) {
-			*converged_pt = false;
+			state = diverged;
 			break;
 		}
 
-        val_current = val_next;
+        eigenpair.eigenval = val_next;
     }
 
-	repair_sign(mat_pt, vec_current_pt, &val_current);
-    eigenpair.val = val_current;
-	eigenpair.vec = vec_current_pt;
-	
+	repair_sign(mat_pt, eigenpair);
     free(vec_next_pt);
     free(vec_deflate_pt);
 
-    return eigenpair;
+	return (struct EigenpairState) { eigenpair, state };
 }
 
+
+// zitra
 void compute_and_write(const char filepath[], size_t num_of_eigenvals) {
 	struct Matrix* mat_pt = mat_read(filepath);
 	struct Node* eigen_list = NULL;
