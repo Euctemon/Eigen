@@ -1,106 +1,157 @@
 #include "pch.h"
 #include "CppUnitTest.h"
+#include <string>
+#include <numbers>
 
 extern "C" {
-#include "..\eigenvalues.h"
+#include "..\\eigenvalues.h"
 }
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+static std::string enum_to_string(const Convergence& value) {
+	switch (value) {
+	case Convergence::unknown:   return "unknown";
+	case Convergence::converged: return "converged";
+	case Convergence::diverged:  return "diverged";
+	default: return "oops";
+	}
+}
 
 namespace Tests
 {
 	TEST_CLASS(Tests)
 	{
 	public:
-		
-		TEST_METHOD(List_delete_idempotent) {
-			struct Vector* vec_pt = vec_init(2);
-			struct Node* eigen_list = nullptr;
+		TEST_METHOD(Diagonal_matrix_vals) {
+			const double check_tol = 1E-5;
+			const size_t dim = 2;
+			struct Matrix* mat_pt = mat_init(dim);
+			struct EigenArray* arr = init_eigen_array(dim, dim);
 
-			list_add(&eigen_list, { 1, vec_pt });
-			list_delete(&eigen_list);
-			list_delete(&eigen_list);
+			double mat_data[] = { 1.9,0,0,2.1 };
+			memcpy(mat_pt->data, mat_data, 4 * sizeof(double));
 
-			Assert::IsNull(eigen_list);
+			enum Convergence state = fill_eigen_array(arr, mat_pt, 1E-8);
+			double first = arr->data[0].eigenval;
+			double second = arr->data[1].eigenval;
+
+			free(mat_pt);
+			clear_eigen_array(arr);
+
+			Assert::AreEqual(2.1, first, check_tol);
+			Assert::AreEqual(1.9, second, check_tol);
+			Assert::AreEqual(enum_to_string(converged), enum_to_string(state));
+		}
+		TEST_METHOD(Zero_matrix_vals) {
+			const double check_tol = 1E-5;
+			const size_t dim = 2;
+			struct Matrix* mat_pt = mat_init(dim);
+			struct EigenArray* arr = init_eigen_array(dim, dim);
+
+			double mat_data[] = { 0.0,0.0,0.0,0.0 };
+			memcpy(mat_pt->data, mat_data, 4 * sizeof(double));
+
+			enum Convergence state = fill_eigen_array(arr, mat_pt, 1E-8);
+			double first = arr->data[0].eigenval;
+			
+			free(mat_pt);
+			clear_eigen_array(arr);
+
+			Assert::IsTrue(isnan(first));
+			Assert::AreEqual(enum_to_string(unknown), enum_to_string(state));
 		}
 
-		TEST_METHOD(Diagonal_matrix_eigenvalues) {
-			struct Matrix* mat_pt = mat_init(2);
-			struct Node* eigen_list = nullptr;
-			struct EigenPair first = { 0 };
-			struct EigenPair second = { 0 };
+		TEST_METHOD(Negative_vals) {
+			const double check_tol = 1E-5;
+			const size_t dim = 2;
+			struct Matrix* mat_pt = mat_init(dim);
+			struct EigenArray* arr = init_eigen_array(dim, dim);
 
-			const double tol_compute = 1E-8;
-			const double tol_check = 1E-4;
-			double first_val = 0;
-			double second_val = 0;
-			bool converged = false;
-			bool empty_image = false;
+			double mat_data[] = { 1.0,2.0,2.0,-2.0 };
+			memcpy(mat_pt->data, mat_data, 4 * sizeof(double));
 
-			mat_pt->data[0] = 1.9;
-			mat_pt->data[1] = 0;
-			mat_pt->data[2] = 0;
-			mat_pt->data[3] = 2.1;
+			enum Convergence state = fill_eigen_array(arr, mat_pt, 1E-8);
+			double first = arr->data[0].eigenval;
+			double second = arr->data[1].eigenval;
 
-			first = eigenpair_compute(&eigen_list, mat_pt, tol_compute, &converged, &empty_image);
-			first_val = first.val;
-			list_add(&eigen_list, first);
+			free(mat_pt);
+			clear_eigen_array(arr);
 
-			second = eigenpair_compute(&eigen_list, mat_pt, tol_compute, &converged, &empty_image);
-			second_val = second.val;
-			list_add(&eigen_list, second);
-			list_delete(&eigen_list);
-
-			Assert::AreEqual(2.1, first_val, tol_check);
-			Assert::AreEqual(1.9, second_val, tol_check);
-		}
-		TEST_METHOD(Zero_matrix_image) {
-			struct Matrix* mat_pt = mat_init(2);
-			struct Node* eigen_list = nullptr;
-			struct EigenPair first = { 0 };
-
-			const double tol_compute = 1E-8;
-			bool converged = false;
-			bool empty_image = false;
-
-			mat_pt->data[0] = 0;
-			mat_pt->data[1] = 0;
-			mat_pt->data[2] = 0;
-			mat_pt->data[3] = 0;
-
-			first = eigenpair_compute(&eigen_list, mat_pt, tol_compute, &converged, &empty_image);
-			free(first.vec);
-
-			Assert::IsTrue(empty_image);
-			Assert::IsFalse(converged);
+			Assert::AreEqual(-3.0, first, check_tol);
+			Assert::AreEqual(2.0, second, check_tol);
+			Assert::AreEqual(enum_to_string(converged), enum_to_string(state));
 		}
 
-		TEST_METHOD(Negative_greatest_eigenvalue) {
-			struct Matrix* mat_pt = mat_init(2);
-			struct Node* eigen_list = nullptr;
-			struct EigenPair first = { 0 };
+		// eigenvalues are sqrt(17) and -sqrt(17)
+		// the deflation technique used for obtaining the next eigenvalue is generally
+		// not reliable when the matrix has multiple eigenvalues of the same magnitude
+		TEST_METHOD(Same_magnitude) {
+			const double check_tol = 1E-5;
+			const size_t dim = 2;
+			struct Matrix* mat_pt = mat_init(dim);
+			struct EigenArray* arr = init_eigen_array(dim, dim);
 
-			const double tol_compute = 1E-8;
-			const double tol_check = 1E-4;
-			const double first_exact = -(3.0 + sqrt(53.0)) / 2.0;
-			double first_val = 0;
-			bool converged = false;
-			bool empty_image = false;
+			double mat_data[] = { 4.0,1.0,1.0,-4.0 };
+			memcpy(mat_pt->data, mat_data, 4 * sizeof(double));
 
-			mat_pt->data[0] = -5.0;
-			mat_pt->data[1] = 1.0;
-			mat_pt->data[2] = 1.0;
-			mat_pt->data[3] = 2.0;
+			enum Convergence state = fill_eigen_array(arr, mat_pt, 1E-8);
+			double first = arr->data[0].eigenval;
+			double second = arr->data[1].eigenval;
 
-			first = eigenpair_compute(&eigen_list, mat_pt, tol_compute, &converged, &empty_image);
+			free(mat_pt);
+			clear_eigen_array(arr);
 
-
-			first_val = first.val;
-			list_add(&eigen_list, first);
-			list_delete(&eigen_list);
-
-			Assert::AreEqual(first_exact, first_val, tol_check);
+			Assert::AreEqual(sqrt(17.0), abs(first), check_tol);
+			Assert::AreNotEqual(sqrt(17.0), abs(second), check_tol);
+			Assert::AreEqual(enum_to_string(converged), enum_to_string(state));
 		}
 
+		// https://www.math.purdue.edu/~eremenko/dvi/beads2.pdf
+		// for classical stiffness matrix of #dim beads with stiffness k = 1 funny things happen
+		// for odd #dim the algorithm computes
+		//		- greatest, third greatest, fifth greatest ...
+		// for even #dim the algorithm computes
+		//		- second greatest, fourth greatest ...
+		TEST_METHOD(Stiffness_matrix) {
+			const double check_tol = 1E-5;
+			const size_t dim = 7;
+			struct Matrix* mat_pt = mat_init(dim);
+			struct EigenArray* arr = init_eigen_array(2, dim);
+
+			for (size_t i = 0; i < dim * dim; i++) mat_pt->data[i] = 0.0;
+			
+			for (size_t i = 1; i < dim - 1; i++) {
+				mat_pt->data[i + i * dim - 1] = -1.0;
+				mat_pt->data[i + i * dim] = 2.0;
+				mat_pt->data[i + i * dim + 1] = -1.0;
+			}
+			mat_pt->data[0] = 2.0;
+			mat_pt->data[1] = -1.0;
+			mat_pt->data[dim * dim - 2] = -1.0;
+			mat_pt->data[dim * dim - 1] = 2.0;
+
+			enum Convergence state = fill_eigen_array(arr, mat_pt, 1E-8);
+			double first = arr->data[0].eigenval;
+			double second = arr->data[1].eigenval;
+
+			free(mat_pt);
+			clear_eigen_array(arr);
+
+			if (dim % 2 == 0) {
+				// first computed eigenvalue is the second largest one
+				// second computed eigenvalue is the fourth largest one
+				Assert::AreEqual(4 * pow(sin(std::numbers::pi * (dim - 1) / (2 * (dim + 1))), 2), first, check_tol);
+				Assert::AreEqual(4 * pow(sin(std::numbers::pi * (dim - 3) / (2 * (dim + 1))), 2), second, check_tol);
+			}
+			else {
+				// first computed eigenvalue is truly the largest one
+				// second computed eigenvalue is the third largest one
+				Assert::AreEqual(4 * pow(sin(std::numbers::pi * dim / (2 * (dim + 1))), 2), first, check_tol);
+				Assert::AreEqual(4 * pow(sin(std::numbers::pi * (dim - 2) / (2 * (dim + 1))), 2), second, check_tol);
+			}
+			
+			Assert::AreEqual(enum_to_string(converged), enum_to_string(state));
+		}
 	};
 }
