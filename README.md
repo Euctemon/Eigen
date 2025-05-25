@@ -1,1 +1,3 @@
 # Eigen
+
+This is a toy project implementing the power method together with deflation technique. The power method is one of the most basic methods used to compute the greatest eigenvalue and the corresponding eigenvector of a symmetric matrix. Together with the deflation technique it is possible to obtain the second greatest eigenvalue and so on. The computing part is in pure c. The project also contains some tests in cpp. I wrote them mainly to learn something about the native Microsoft test suite and are not meant to seriously test the code. They are not useless as they highlight some limitations of the power method.
